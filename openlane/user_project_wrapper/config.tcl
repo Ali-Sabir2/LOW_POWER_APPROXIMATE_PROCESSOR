@@ -30,40 +30,38 @@ set ::env(DESIGN_NAME) user_project_wrapper
 ## Source Verilog Files
 set ::env(VERILOG_FILES) "\
 	$::env(CARAVEL_ROOT)/verilog/rtl/defines.v \
-	$::env(DESIGN_DIR)/../../verilog/rtl/user_project_wrapper.v \
-	$::env(DESIGN_DIR)/../../verilog/rtl/mult_asic_16x16.v \
-	$::env(DESIGN_DIR)/../../verilog/rtl/PS_Rx.v \
-	$::env(DESIGN_DIR)/../../verilog/rtl/PS_R1.v \
-	$::env(DESIGN_DIR)/../../verilog/rtl/LUT_xRT.v \
-	$::env(DESIGN_DIR)/../../verilog/rtl/LUT_xRS.v \
-	$::env(DESIGN_DIR)/../../verilog/rtl/LUT_xRN.v\
-	$::env(DESIGN_DIR)/../../verilog/rtl/LUT_1RT.v \
-	$::env(DESIGN_DIR)/../../verilog/rtl/LUT_1RS.v  \
-        $::env(DESIGN_DIR)/../../verilog/rtl/LUT_1RN.v  \
-        $::env(DESIGN_DIR)/../../verilog/rtl/carry_xR.v \
-         $::env(DESIGN_DIR)/../../verilog/rtl/carry_1R.v"
+	$::env(DESIGN_DIR)/../../verilog/rtl/user_project_wrapper.v"
+
 ## Clock configurations
 set ::env(CLOCK_PORT) "user_clock2"
-#set ::env(CLOCK_NET) "MUL.clk"
+set ::env(CLOCK_NET) "mprj.clk"
 
-set ::env(CLOCK_PERIOD) "50"
-set ::env(QUIT_ON_SETUP_VIOLATIONS) "0"
+set ::env(CLOCK_PERIOD) "20"
+
 ## Internal Macros
 ### Macro PDN Connections
 set ::env(FP_PDN_MACRO_HOOKS) "\
-	MUL vdd vss vdd vss"
+	mprj vdd vss vdd vss"
 
 ### Macro Placement
 set ::env(MACRO_PLACEMENT_CFG) $::env(DESIGN_DIR)/macro.cfg
 
 ### Black-box verilog and views
 set ::env(VERILOG_FILES_BLACKBOX) "\
-	$::env(CARAVEL_ROOT)/verilog/rtl/defines.v "
+	$::env(CARAVEL_ROOT)/verilog/rtl/defines.v \
+	$::env(DESIGN_DIR)/../../verilog/rtl/mult_asic_16x16.v"
 
+set ::env(EXTRA_LEFS) "\
+	$::env(DESIGN_DIR)/../../lef/mult_asic_16x16.lef"
 
-set ::env(RT_MAX_LAYER) {Metal4}
+set ::env(EXTRA_GDS_FILES) "\
+	$::env(DESIGN_DIR)/../../gds/mult_asic_16x16.gds"
+
 set ::env(QUIT_ON_LVS_ERROR) 0
-set ::env(QUIT_ON_DRC_ERROR) 0
+# disable pdn check nodes becuase it hangs with multiple power domains.
+# any issue with pdn connections will be flagged with LVS so it is not a critical check.
+set ::env(RT_MAX_LAYER) {Metal4}
+
 # disable pdn check nodes becuase it hangs with multiple power domains.
 # any issue with pdn connections will be flagged with LVS so it is not a critical check.
 set ::env(FP_PDN_CHECK_NODES) 0
@@ -74,9 +72,9 @@ set ::env(PL_RANDOM_GLB_PLACEMENT) 1
 
 set ::env(FP_PDN_ENABLE_RAILS) 0
 
-set ::env(DIODE_INSERTION_STRATEGY) 0
-set ::env(RUN_FILL_INSERTION) 0
-set ::env(RUN_TAP_DECAP_INSERTION) 0
+set ::env(DIODE_INSERTION_STRATEGY) 3
+set ::env(RUN_FILL_INSERTION) 1
+set ::env(RUN_TAP_DECAP_INSERTION) 1
 set ::env(CLOCK_TREE_SYNTH) 0
 
 # YOU ARE NOT ALLOWED TO CHANGE ANY VARIABLES DEFINED IN THE FIXED WRAPPER CFGS 

@@ -21,9 +21,54 @@
 
 
 module mult_asic_16x16(
-input [15:0] a,b,
-output [31:0] P
+input clk,
+input rst,
+input A_PAD,
+input B_PAD,
+output reg P0,
+output reg P1
 );
+
+
+reg [15:0] a;
+reg [15:0] b;
+wire [31:0] P;
+reg [3:0] count;
+reg [4:0] count1;
+
+always@(posedge clk or posedge rst)
+begin
+if(rst==1)
+    begin
+      count<=4'b0000;
+      count1<=5'b00000;
+      end
+      else
+          begin
+           if(count<15)
+            begin
+              a[count]<=A_PAD;
+              b[count]<=B_PAD;
+              end
+              else
+              count<=count+1;
+
+		end
+end 
+        
+always @(posedge clk)
+    begin
+    	if(count1<=31)
+    	begin
+    	P0<=P[count1];
+    	P1<=P[count1+15];
+    	end
+    		else 
+    			count1=count1+1;
+    end
+
+
+
 
 wire [17:0] PS_r1,PS_r2,PS_r3,PS_r4,PS_r5,PS_r6,PS_r7,PS_r8;
 
