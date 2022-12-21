@@ -31,10 +31,16 @@
 
 module user_project_wrapper #(
     parameter BITS = 32
-)(
+) (
 `ifdef USE_POWER_PINS
-    inout vdd,		// User area 5.0V supply
-    inout vss,		// User area ground
+    inout vdda1,	// User area 1 3.3V supply
+    inout vdda2,	// User area 2 3.3V supply
+    inout vssa1,	// User area 1 analog ground
+    inout vssa2,	// User area 2 analog ground
+    inout vccd1,	// User area 1 1.8V supply
+    inout vccd2,	// User area 2 1.8v supply
+    inout vssd1,	// User area 1 digital ground
+    inout vssd2,	// User area 2 digital ground
 `endif
 
     // Wishbone Slave ports (WB MI A)
@@ -50,14 +56,20 @@ module user_project_wrapper #(
     output [31:0] wbs_dat_o,
 
     // Logic Analyzer Signals
-    input  [63:0] la_data_in,
-    output [63:0] la_data_out,
-    input  [63:0] la_oenb,
+    input  [127:0] la_data_in,
+    output [127:0] la_data_out,
+    input  [127:0] la_oenb,
 
     // IOs
     input  [`MPRJ_IO_PADS-1:0] io_in,
     output [`MPRJ_IO_PADS-1:0] io_out,
     output [`MPRJ_IO_PADS-1:0] io_oeb,
+
+    // Analog (direct connection to GPIO pad---use with caution)
+    // Note that analog I/O is not available on the 7 lowest-numbered
+    // GPIO pads, and so the analog_io indexing is offset from the
+    // GPIO indexing by 7 (also upper 2 GPIOs do not have analog_io).
+    inout [`MPRJ_IO_PADS-10:0] analog_io,
 
     // Independent clock (on independent integer divider)
     input   user_clock2,
@@ -66,32 +78,45 @@ module user_project_wrapper #(
     output [2:0] user_irq
 );
 
-
-
-// Instentiation 
-mult_asic_16x16 mprj(
-.clk(user_clock2),
-.rst(io_in[0]),
-.A_PAD(io_in[1]),
-.B_PAD(io_in[2]),
-.P0(io_out[0]),
-.P1(io_out[1])
-);
-endmodule 
-
-// Black BOX
-module mult_asic_16x16(
+/*--------------------------------------*/
+/* User project is instantiated  here   */
+/*--------------------------------------*/
+user_proj_example mprj (
 `ifdef USE_POWER_PINS
-    inout vdd,		// User area 5.0V supply
-    inout vss,		// User area ground
+	.vccd1(vccd1),	// User area 1 1.8V power
+	.vssd1(vssd1),	// User area 1 digital ground
 `endif
-input clk,
-input rst,
-input A_PAD,
-input B_PAD,
-output reg P0,
-output reg P1
+
+    .wb_clk_i(wb_clk_i),
+    .wb_rst_i(wb_rst_i),
+
+    // MGMT SoC Wishbone Slave
+
+    .wbs_cyc_i(wbs_cyc_i),
+    .wbs_stb_i(wbs_stb_i),
+    .wbs_we_i(wbs_we_i),
+    .wbs_sel_i(wbs_sel_i),
+    .wbs_adr_i(wbs_adr_i),
+    .wbs_dat_i(wbs_dat_i),
+    .wbs_ack_o(wbs_ack_o),
+    .wbs_dat_o(wbs_dat_o),
+
+    // Logic Analyzer
+
+    .la_data_in(la_data_in),
+    .la_data_out(la_data_out),
+    .la_oenb (la_oenb),
+
+    // IO Pads
+
+    .io_in (io_in),
+    .io_out(io_out),
+    .io_oeb(io_oeb),
+
+    // IRQ
+    .irq(user_irq)
 );
+
 endmodule	// user_project_wrapper
 
 `default_nettype wire
